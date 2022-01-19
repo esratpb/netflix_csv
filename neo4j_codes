@@ -1,0 +1,31 @@
+Match (i:Item) return collect(i.country)
+Match (i:Item) return size(collect(i.country))
+Match (i:Item)  set i.country= split(i.country,",") return i.country  //her item in county veya countries bir array icinde,array elemani
+with[["a","b"],["a"],["b"]] as nested unwind nested as un return distinct un  (sonucu tek tek ayrilmis ["a","b"]  ["a"]   ["b"])(ic ice iki inwind yaparsak a b a b gelecek)
+Match(i:Item) with collect(i.country) as countries unwind countries as coun unwind coun as c return collect(distinct(trim(c)))   //herbir ulkenin adi sadece bir kere gecen bir array
+
+
+Match(i:Item)
+with collect(i.country) as countries
+unwind countries as coun
+unwind coun as c
+with collect(distinct(trim(c))) as r
+create (a:AllCountry {description:r})
+return a.description                        //bu arrayi kaybetmemek icin gecici bir nodes olusturup description a bu arrayi yazdim
+
+
+Match(a:AllCountry)
+with a.description as ades
+unwind ades as ad
+create(c:Country {name:ad})
+return c                         //bu description in herbir elemani ile bir Country node u olusturdum nodun name i ulke adi
+
+
+match (i:Item),(c:Country) 
+where c.name in i.country or " "+c.name in i.country
+create (i)-[r:COUNTRY]->(c)
+RETURN i,c                          //country label indaki ulke isimleri eger bir filmin ulke kisminda varsa veya basi bsluk ile baslayip varsa iliski kur
+
+
+match(i:Item)-[r:COUNTRY]-(c:Country) where i.title="Atlantics" return i,c       //kontrol icin 3 tane ulke ile iliskisi var
+match (i:Item)-[r:COUNTRY]-(c:Country ) where c.name="Belgium" or c.name="France" return i,c   //belgium ve france filmeli ve ortaklar
